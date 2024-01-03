@@ -38,12 +38,12 @@ const signIn = async (req, res) => {
     // check existing user
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (!existingUser) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(401).json({ message: "User not found" });
     }
     // check password
     const matchPassword = await bcrypt.compare(password, existingUser.password);
     if (!matchPassword) {
-      return res.status(404).json({ message: "Password not matched" });
+      return res.status(401).json({ message: "Password not matched" });
     }
     // generate token
     const token = jwt.sign(
