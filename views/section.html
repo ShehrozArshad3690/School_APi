@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sections</title>
+    <!-- Add Bootstrap CSS link -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <script src="./middleware.js"></script>
+
+    <div class="container mt-5">
+      <h1>Sections</h1>
+      <form>
+        <div class="form-group">
+          <label for="classId">Enter Class Id</label>
+          <input type="text" class="form-control" name="Id" id="classId" />
+          <label for="sectionName">Enter Section Name</label>
+          <input
+            type="text"
+            class="form-control"
+            name="Name"
+            id="sectionName"
+          />
+        </div>
+        <button class="btn btn-primary" id="add" onclick="addSection(event)">
+          Add Section
+        </button>
+        <button
+          class="btn btn-secondary"
+          id="update"
+          onclick="updateSection(event)"
+        >
+          Update Section</button
+        ><br /><br />
+      </form>
+      <button class="btn btn-info" id="getAll" onclick="getAll(event)">
+        Get All
+      </button>
+      <button class="btn btn-warning" id="getOne" onclick="getOne(event)">
+        Get By Id
+      </button>
+      <button class="btn btn-danger" id="delete" onclick="deleteSection(event)">
+        Delete Section
+      </button>
+      <button onclick="deleteToken(event)">Logout</button>
+
+      <!-- Display data in a table -->
+      <table class="table mt-4">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Class ID</th>
+            <th>Section Name</th>
+          </tr>
+        </thead>
+        <tbody id="sectionTableBody">
+          <!-- Data will be inserted here dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Add Bootstrap JS and Popper.js scripts -->
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      const token = localStorage.getItem("token");
+      async function getAll(e) {
+        e.preventDefault();
+
+        try {
+          let result = await fetch("http://localhost:3000/sections", {
+            method: "GET",
+            headers: {
+              authorization: token,
+            },
+          });
+
+          const data = await result.json();
+
+          // Update the table with the retrieved data
+          updateTable(data);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      async function getOne(e) {
+        e.preventDefault();
+        const id = Number(prompt("Enter Id"));
+
+        try {
+          let result = await fetch(`http://localhost:3000/section/${id}`, {
+            method: "GET",
+            headers: {
+              authorization: token,
+            },
+          });
+
+          const data = await result.json();
+          updateTable(data);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      async function addSection(e) {
+        e.preventDefault();
+
+        try {
+          let classId = document.getElementById("classId").value;
+          let sectionName = document.getElementById("sectionName").value;
+          let result = await fetch(`http://localhost:3000/section/add`, {
+            method: "POST",
+            headers: {
+              authorization: token,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              classId: classId,
+              sectionName: sectionName,
+            }),
+          });
+
+          const newSection = await result.json();
+          updateTable(newSection);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      async function updateSection(e) {
+        e.preventDefault();
+        const id = Number(prompt("Enter Id"));
+        const classId = Number(document.getElementById("classId").value);
+        const sectionName = document.getElementById("sectionName").value;
+
+        try {
+          const result = await fetch(
+            `http://localhost:3000/section/update/${id}`,
+            {
+              method: "PUT",
+              headers: {
+                authorization: token,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                classId: classId,
+                sectionName: sectionName,
+              }),
+            }
+          );
+
+          const updatedSection = await result.json();
+
+          updateTable(updatedSection);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      async function deleteSection(e) {
+        e.preventDefault();
+        const id = Number(prompt("Enter Id"));
+
+        try {
+          const result = await fetch(
+            `http://localhost:3000/section/delete/${id}`,
+            {
+              method: "DELETE",
+              headers: {
+                authorization: token,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          // Log a message in the console without updating the table
+          console.log(`Class ${id} deleted successfully!`);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      function updateTable(data) {
+        const tableBody = document.getElementById("sectionTableBody");
+        tableBody.innerHTML = ""; // Clear existing data
+
+        if (Array.isArray(data)) {
+          data.forEach((item) => {
+            const row = tableBody.insertRow();
+            row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.classId}</td>
+                    <td>${item.sectionName}</td>
+                `;
+          });
+        } else {
+          const row = tableBody.insertRow();
+          row.innerHTML = `
+                <td>${data.id}</td>
+                <td>${data.classId}</td>
+                <td>${data.sectionName}</td>
+            `;
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Classes</title>
+    <!-- Add Bootstrap CSS link -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <script src="./middleware.js"></script>
+
+    <div class="container mt-5">
+      <h1>Classes</h1>
+      <form>
+        <div class="form-group">
+          <label for="schoolId">Enter School Id</label>
+          <input type="text" class="form-control" name="Id" id="schoolId" />
+          <label for="className">Enter Class Name</label>
+          <input type="text" class="form-control" name="Name" id="className" />
+        </div>
+        <button class="btn btn-primary" id="add" onclick="addClass(event)">
+          Add Class
+        </button>
+        <button
+          class="btn btn-secondary"
+          id="update"
+          onclick="updateClass(event)"
+        >
+          Update Class</button
+        ><br /><br />
+      </form>
+      <button class="btn btn-info" id="getAll" onclick="getAll(event)">
+        Get All
+      </button>
+      <button class="btn btn-warning" id="getOne" onclick="getOne(event)">
+        Get By Id
+      </button>
+      <button class="btn btn-danger" id="delete" onclick="deleteClass(event)">
+        Delete Class
+      </button>
+      <button onclick="deleteToken(event)">Logout</button>
+
+      <!-- Display data in a table -->
+      <table class="table mt-4">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>School ID</th>
+            <th>Class Name</th>
+          </tr>
+        </thead>
+        <tbody id="classTableBody">
+          <!-- Data will be inserted here dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Add Bootstrap JS and Popper.js scripts -->
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      const token = localStorage.getItem("token");
+      async function getAll(e) {
+        e.preventDefault();
+
+        try {
+          let result = await fetch("http://localhost:3000/classes", {
+            method: "GET",
+            headers: {
+              authorization: token,
+            },
+          });
+
+          const data = await result.json();
+
+          // Update the table with the retrieved data
+          updateTable(data);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      async function getOne(e) {
+        e.preventDefault();
+        const id = Number(prompt("Enter Id"));
+
+        try {
+          let result = await fetch(`http://localhost:3000/class/${id}`, {
+            method: "GET",
+            headers: {
+              authorization: token,
+            },
+          });
+
+          const data = await result.json();
+          updateTable(data);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      async function addClass(e) {
+        e.preventDefault();
+
+        try {
+          let schoolId = document.getElementById("schoolId").value;
+          let className = document.getElementById("className").value;
+          let result = await fetch(`http://localhost:3000/class/add`, {
+            method: "POST",
+            headers: {
+              authorization: token,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ schoolId: schoolId, className: className }),
+          });
+
+          const newClass = await result.json();
+          updateTable(newClass);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      async function updateClass(e) {
+        e.preventDefault();
+        const id = Number(prompt("Enter Id"));
+        const schoolId = Number(document.getElementById("schoolId").value);
+        const className = document.getElementById("className").value;
+
+        try {
+          const result = await fetch(
+            `http://localhost:3000/class/update/${id}`,
+            {
+              method: "PUT",
+              headers: {
+                authorization: token,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                schoolId: schoolId,
+                className: className,
+              }),
+            }
+          );
+
+          const updatedClass = await result.json();
+
+          updateTable(updatedClass);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      async function deleteClass(e) {
+        e.preventDefault();
+        const id = Number(prompt("Enter Id"));
+
+        try {
+          const result = await fetch(
+            `http://localhost:3000/class/delete/${id}`,
+            {
+              method: "DELETE",
+              headers: {
+                authorization: token,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          // Log a message in the console without updating the table
+          console.log(`Class ${id} deleted successfully!`);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      function updateTable(data) {
+        const tableBody = document.getElementById("classTableBody");
+        tableBody.innerHTML = ""; // Clear existing data
+
+        if (Array.isArray(data)) {
+          data.forEach((item) => {
+            const row = tableBody.insertRow();
+            row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.schoolId}</td>
+                    <td>${item.className}</td>
+                `;
+          });
+        } else {
+          const row = tableBody.insertRow();
+          row.innerHTML = `
+                <td>${data.id}</td>
+                <td>${data.schoolId}</td>
+                <td>${data.className}</td>
+            `;
+        }
+      }
+    </script>
+  </body>
+</html>

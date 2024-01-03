@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h1>Sign In</h1>
+      <form id="myForm">
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email" required />
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" class="form-control" id="password" required />
+        </div>
+        <button type="submit" class="btn btn-primary" onclick="onSubmit(event)">
+          Submit</button
+        >&nbsp;&nbsp;
+        <button><a href="signup.html">SignUp</a></button>
+      </form>
+
+      <!-- Display response token in table -->
+      <div class="mt-4" id="responseTable"></div>
+    </div>
+
+    <script>
+      async function onSubmit(e) {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        if (email && password) {
+          e.preventDefault();
+          const formObject = {
+            email: email,
+            password: password,
+          };
+          const jsonForm = JSON.stringify(formObject);
+
+          try {
+            let response = await fetch("http://localhost:3000/signin", {
+              method: "POST",
+              body: jsonForm,
+              headers: {
+                "Content-type": "application/json",
+              },
+            });
+
+            if (response.ok) {
+              let data = await response.json();
+              redirectToDashboard(data.token);
+            } else if (response.status === 401) {
+              let data = await response.json();
+              alert(data.message);
+            }
+          } catch (error) {
+            console.error(error.message);
+            // Handle error display or logging as needed
+          }
+        }
+      }
+
+      // function displayResponseToken(token) {
+      //   const responseTableDiv = document.getElementById("responseTable");
+      //   responseTableDiv.innerHTML = ""; // Clear previous content
+
+      //   const table = document.createElement("table");
+      //   table.classList.add("table");
+
+      //   // Create table headers
+      //   const thead = document.createElement("thead");
+      //   const headerRow = document.createElement("tr");
+      //   const th = document.createElement("th");
+      //   th.textContent = "Token";
+      //   headerRow.appendChild(th);
+
+      //   thead.appendChild(headerRow);
+      //   table.appendChild(thead);
+
+      //   // Create table body
+      //   const tbody = document.createElement("tbody");
+      //   const dataRow = document.createElement("tr");
+      //   const td = document.createElement("td");
+      //   td.textContent = token;
+      //   dataRow.appendChild(td);
+
+      //   tbody.appendChild(dataRow);
+      //   table.appendChild(tbody);
+
+      //   responseTableDiv.appendChild(table);
+      // }
+      
+      function redirectToDashboard(token) {
+        localStorage.setItem("token", token);
+        window.location.href = "http://localhost:3000/index.html";
+      }
+    </script>
+  </body>
+</html>

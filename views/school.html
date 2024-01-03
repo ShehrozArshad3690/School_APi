@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Schools</title>
+    <!-- Add Bootstrap CSS link -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <script src="./middleware.js"></script>
+
+    <div class="container mt-5">
+      <h1>Schools</h1>
+      <form>
+        <div class="form-group">
+          <label for="schName">Enter School Name</label>
+          <input type="text" class="form-control" name="School" id="schName" />
+        </div>
+        <button class="btn btn-primary" id="add" onclick="addSchool(event)">
+          Add School
+        </button>
+        <button
+          class="btn btn-secondary"
+          id="update"
+          onclick="updateSchool(event)"
+        >
+          Update School</button
+        ><br /><br />
+      </form>
+      <button class="btn btn-info" id="getAll" onclick="getAll(event)">
+        Get All
+      </button>
+      <button class="btn btn-warning" id="getOne" onclick="getOne(event)">
+        Get By Id
+      </button>
+      <button class="btn btn-danger" id="delete" onclick="deleteSchool(event)">
+        Delete School
+      </button>
+      <button onclick="deleteToken(event)">Logout</button>
+
+      <!-- Display data in a table -->
+      <table class="table mt-4">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>School Name</th>
+          </tr>
+        </thead>
+        <tbody id="schoolTableBody">
+          <!-- Data will be inserted here dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Add Bootstrap JS and Popper.js scripts -->
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      const token=localStorage.getItem("token");
+      async function getAll(e) {
+        e.preventDefault();
+        try {
+          let result = await fetch("http://localhost:3000/schools", {
+            method: "GET",
+            headers: {
+              authorization: token,
+            },
+          });
+
+          const data = await result.json();
+
+          // Update the table content
+          updateTable(data);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      async function getOne(e) {
+        e.preventDefault();
+        const id = Number(prompt("Enter Id"));
+
+        try {
+          let result = await fetch(`http://localhost:3000/school/${id}`, {
+            method: "GET",
+            headers: {
+              authorization: token,
+            },
+          });
+
+          const data = await result.json();
+
+          // Update the table content with the single record
+          updateTable(data);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      async function addSchool(e) {
+        e.preventDefault();
+
+        try {
+          let schoolName = document.getElementById("schName").value;
+          let result = await fetch(`http://localhost:3000/school/add`, {
+            method: "POST",
+            headers: {
+              authorization: token,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ schoolName: schoolName }),
+          });
+
+          const newSchool = await result.json();
+
+          // Append the new school to the table
+          updateTable(newSchool);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      async function updateSchool(e) {
+        e.preventDefault();
+        const id = Number(prompt("Enter Id"));
+        const schoolName = document.getElementById("schName").value;
+
+        try {
+          const result = await fetch(
+            `http://localhost:3000/school/update/${id}`,
+            {
+              method: "PUT",
+              headers: {
+                authorization: token,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ schoolName: schoolName }),
+            }
+          );
+
+          const updatedSchool = await result.json();
+
+          // Update the entire table with the fetched data
+          updateTable(updatedSchool);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      async function deleteSchool(e) {
+        e.preventDefault();
+        const id = Number(prompt("Enter Id"));
+
+        try {
+          const result = await fetch(
+            `http://localhost:3000/school/delete/${id}`,
+            {
+              method: "DELETE",
+              headers: {
+                authorization: token,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          // Log a message in the console without updating the table
+          console.log(`School ${id} deleted successfully!`);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      function updateTable(data, append = false) {
+        const tableBody = document.getElementById("schoolTableBody");
+        if (!append) {
+          tableBody.innerHTML = ""; // Clear existing data
+        }
+
+        if (Array.isArray(data)) {
+          data.forEach((school) => {
+            const row = tableBody.insertRow();
+            row.innerHTML = `
+                <td>${school.id}</td>
+                <td>${school.schoolName}</td>
+            `;
+          });
+        } else {
+          const row = tableBody.insertRow();
+          row.innerHTML = `
+            <td>${data.id}</td>
+            <td>${data.schoolName}</td>
+        `;
+        }
+      }
+    </script>
+  </body>
+</html>

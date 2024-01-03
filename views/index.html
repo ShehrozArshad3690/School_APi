@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <style>
+      button {
+        color: white;
+        text-decoration: none;
+      }
+
+      .btn-primary a,
+      .btn-secondary a,
+      .btn-success a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .btn-primary:hover,
+      .btn-secondary:hover,
+      .btn-success:hover {
+        background-color: #007bff;
+      }
+
+      .btn-danger:hover {
+        background-color: #dc3545;
+      }
+    </style>
+    <!-- Include Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <script src="./middleware.js"></script>
+    <h1>Dashboard</h1>
+    <button class="btn btn-primary">
+      <a href="http://localhost:3000/school.html">Schools</a>
+    </button>
+    <button class="btn btn-secondary">
+      <a href="http://localhost:3000/class.html">Classes</a>
+    </button>
+    <button class="btn btn-success">
+      <a href="http://localhost:3000/section.html">Sections</a>
+    </button>
+    <button class="btn btn-danger" onclick="deleteToken(event)">Logout</button>
+  </body>
+</html>
